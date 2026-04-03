@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>RootMC Store</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@400;500;600;700&family=Cinzel+Decorative:wght@700&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --p1:#5b21b6;--p2:#7c3aed;--p3:#9333ea;--p4:#a855f7;--p5:#c084fc;
+  --dark:#07040f;--d2:#0f0820;--d3:#160c2e;--d4:#1d1040;
+  --text:#f0e6ff;--muted:#b39ddb;--gold:#fbbf24;
+  --glow:0 0 24px #7c3aed99,0 0 48px #5b21b644;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;scroll-padding-top:68px;}
+body{background:var(--dark);color:var(--text);font-family:'Rajdhani',sans-serif;overflow-x:hidden;}
+#bg{position:fixed;inset:0;z-index:0;pointer-events:none;}
+.wrap{position:relative;z-index:1;}
+
+/* NAV */
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:200;height:68px;
+  background:rgba(7,4,15,.93);backdrop-filter:blur(20px);
+  border-bottom:1px solid rgba(124,58,237,.3);
+  display:flex;align-items:center;padding:0 2rem;
+}
+.logo{
+  font-family:'Press Start 2P',monospace;font-size:.9rem;
+  color:#fff;text-shadow:0 0 16px #a855f7,0 2px 0 #2d1b69;
+  margin-right:auto;letter-spacing:1px;line-height:1.4;
+}
+.logo span{color:#c084fc;}
+.nav-links{display:flex;gap:.1rem;}
+.nb{
+  background:none;border:none;color:#b39ddb;
+  font-family:'Rajdhani',sans-serif;font-size:.9rem;font-weight:700;
+  padding:.45rem .9rem;border-radius:8px;cursor:pointer;
+  transition:all .2s;letter-spacing:.4px;position:relative;
+}
+.nb::after{
+  content:'';position:absolute;bottom:5px;left:50%;transform:translateX(-50%);
+  width:0;height:2px;background:#c084fc;border-radius:2px;transition:width .25s;
+}
+.nb:hover,.nb.on{color:#fff;}
+.nb:hover::after,.nb.on::after{width:55%;}
+.nb.on{color:#c084fc;text-shadow:0 0 10px #9333ea;}
+.cart-pill{
+  display:flex;align-items:center;gap:.5rem;
+  background:linear-gradient(135deg,#5b21b6,#9333ea);
+  color:#fff;border:none;border-radius:20px;
+  font-family:'Rajdhani',sans-serif;font-weight:700;font-size:.9rem;
+  padding:.4rem 1.1rem;cursor:pointer;margin-left:.5rem;
+  box-shadow:0 0 20px #7c3aed55;transition:all .2s;
+}
+.cart-pill:hover{box-shadow:var(--glow);transform:translateY(-1px);}
+.cbadge{
+  background:#fff;color:#7c3aed;border-radius:50%;
+  width:18px;height:18px;font-size:.65rem;font-weight:900;
+  display:flex;align-items:center;justify-content:center;
+}
+
+/* SECTIONS */
+section{min-height:100vh;padding:88px 0 70px;scroll-margin-top:68px;}
+.sec-hero{text-align:center;padding:0 1rem 2.5rem;}
+.sec-hero h2{
+  font-family:'Press Start 2P',monospace;
+  font-size:clamp(.9rem,2.8vw,1.5rem);
+  line-height:1.7;margin-bottom:.75rem;
+  background:linear-gradient(135deg,#fff 0%,#c084fc 50%,#a855f7 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  filter:drop-shadow(0 0 14px #9333ea);
+}
+.sec-hero p{color:#b39ddb;font-size:1rem;font-weight:500;}
+.sec-divider{height:2px;background:linear-gradient(90deg,transparent,#9333ea,transparent);opacity:.35;}
+
+/* GRIDS */
+.ranks-grid{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));
+  gap:1.5rem;padding:0 2rem 2rem;max-width:1320px;margin:0 auto;
+}
+.coins-grid{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(225px,1fr));
+  gap:1.25rem;padding:0 2rem 2rem;max-width:1200px;margin:0 auto;
+}
+.staff-grid{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));
+  gap:1.5rem;padding:0 2rem 2rem;max-width:1100px;margin:0 auto;
+}
+
+/* RANK CARD */
+.rcard{
+  background:linear-gradient(160deg,rgba(22,12,46,.97),rgba(29,16,64,.92));
+  border:1px solid rgba(124,58,237,.22);
+  border-radius:18px;padding:1.75rem;
+  position:relative;overflow:hidden;
+  transition:transform .3s cubic-bezier(.34,1.56,.64,1),box-shadow .3s,border-color .3s;
+}
+.rcard::before{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(ellipse at 30% 0%,rgba(168,85,247,.13),transparent 65%);
+  opacity:0;transition:opacity .3s;
+}
+.rcard::after{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;pointer-events:none;
+  background:linear-gradient(90deg,transparent,var(--tc,#c084fc),transparent);opacity:.6;
+}
+.rcard:hover{
+  transform:translateY(-7px) scale(1.02);
+  border-color:var(--tc,#c084fc);
+  box-shadow:0 14px 50px rgba(124,58,237,.35),0 0 0 1px var(--tc,#c084fc);
+}
+.rcard:hover::before{opacity:1;}
+.rcard[data-t="VIP"]{--tc:#60a5fa;}
+.rcard[data-t="KING"]{--tc:#fbbf24;}
+.rcard[data-t="LEGEND"]{--tc:#f97316;}
+.rcard[data-t="MVP"]{--tc:#ec4899;}
+.rcard[data-t="GOD"]{--tc:#a855f7;}
+.rcard[data-t="ROOT"]{--tc:#ef4444;}
+
+/* MINECRAFT FONT RANK TITLE */
+.rank-title{
+  font-family:'Press Start 2P',monospace;
+  font-size:.9rem;line-height:1.5;
+  color:var(--tc,#c084fc);
+  text-shadow:0 0 18px var(--tc,#c084fc),0 2px 0 rgba(0,0,0,.9);
+  margin-bottom:.6rem;
+  display:flex;align-items:center;gap:.6rem;
+}
+.rank-price{
+  font-family:'Press Start 2P',monospace;
+  font-size:1.2rem;color:#fff;
+  text-shadow:0 0 20px #a855f7,0 2px 0 #1a0f2e;
+  margin-bottom:1.25rem;
+  display:flex;align-items:baseline;gap:.4rem;
+}
+.rank-price small{font-size:.5rem;color:#b39ddb;font-family:'Rajdhani',sans-serif;font-weight:600;}
+.best-tag{
+  position:absolute;top:14px;right:14px;
+  font-family:'Press Start 2P',monospace;font-size:.42rem;
+  background:linear-gradient(135deg,#ef4444,#7c3aed);
+  color:#fff;padding:.28rem .52rem;border-radius:5px;letter-spacing:.4px;line-height:1.5;
+}
+.feats{list-style:none;margin-bottom:1.5rem;border-top:1px solid rgba(124,58,237,.14);padding-top:.75rem;}
+.feats li{
+  display:flex;align-items:center;gap:.6rem;
+  color:#b39ddb;font-size:.9rem;font-weight:600;
+  padding:.28rem 0;border-bottom:1px solid rgba(124,58,237,.07);letter-spacing:.2px;
+}
+.feats li:last-child{border-bottom:none;}
+.fi{font-size:.85rem;min-width:1.1rem;}
+
+/* ADD TO CART BTN */
+.acb{
+  width:100%;border:none;border-radius:10px;
+  font-family:'Press Start 2P',monospace;font-size:.58rem;
+  color:#fff;padding:.9rem .5rem;cursor:pointer;
+  letter-spacing:.5px;line-height:1.5;
+  background:linear-gradient(135deg,#5b21b6,#9333ea);
+  box-shadow:0 4px 20px rgba(124,58,237,.45);
+  transition:all .25s;position:relative;overflow:hidden;z-index:2;
+}
+.acb:hover{box-shadow:0 6px 32px rgba(168,85,247,.75);transform:translateY(-2px);}
+.acb:active{transform:scale(.97);}
+
+/* COIN CARD */
+.ccard{
+  background:linear-gradient(160deg,rgba(22,12,46,.97),rgba(29,16,64,.92));
+  border:1px solid rgba(124,58,237,.18);
+  border-radius:16px;padding:1.5rem 1.25rem;
+  text-align:center;position:relative;overflow:hidden;
+  transition:transform .3s cubic-bezier(.34,1.56,.64,1),box-shadow .3s;
+}
+.ccard::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;pointer-events:none;background:linear-gradient(90deg,transparent,#fbbf24,transparent);opacity:.45;}
+.ccard:hover{
+  transform:scale(1.05) translateY(-5px);
+  box-shadow:0 14px 44px rgba(251,191,36,.38),0 0 0 1px #fbbf24;
+  border-color:#fbbf24;
+}
+.cemoji{font-size:2.2rem;display:block;margin-bottom:.6rem;filter:drop-shadow(0 0 10px #fbbf24aa);}
+.camount{
+  font-family:'Press Start 2P',monospace;
+  font-size:.78rem;color:#fcd34d;
+  text-shadow:0 0 16px #fbbf24,0 2px 0 #78350f;
+  margin-bottom:.5rem;line-height:1.6;
+}
+.cprice{font-family:'Rajdhani',sans-serif;font-size:1.15rem;font-weight:700;color:#b39ddb;margin-bottom:1rem;}
+.hot-tag{
+  position:absolute;top:10px;right:10px;
+  font-family:'Press Start 2P',monospace;font-size:.38rem;
+  background:linear-gradient(135deg,#f59e0b,#ef4444);
+  color:#fff;padding:.24rem .44rem;border-radius:4px;letter-spacing:.3px;line-height:1.5;
+}
+.custom-ccard{
+  background:linear-gradient(160deg,rgba(124,58,237,.16),rgba(168,85,247,.09));
+  border:1px dashed rgba(168,85,247,.4);border-radius:16px;
+  padding:1.75rem 1.25rem;text-align:center;cursor:pointer;transition:all .3s;
+}
+.custom-ccard:hover{border-color:#a855f7;box-shadow:0 0 28px rgba(168,85,247,.38);transform:translateY(-3px);}
+
+/* STAFF */
+.scard{
+  background:linear-gradient(160deg,rgba(22,12,46,.97),rgba(29,16,64,.92));
+  border:1px solid rgba(124,58,237,.18);
+  border-radius:18px;padding:2rem 1.25rem;
+  text-align:center;position:relative;overflow:hidden;
+  transition:all .3s cubic-bezier(.34,1.56,.64,1);
+}
+.scard::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;pointer-events:none;background:linear-gradient(90deg,transparent,var(--sc,#a855f7),transparent);opacity:.6;}
+.scard:hover{transform:translateY(-8px);border-color:var(--sc,#a855f7);box-shadow:0 16px 48px rgba(124,58,237,.32);}
+.savatar{width:76px;height:76px;border-radius:50%;margin:0 auto 1rem;display:flex;align-items:center;justify-content:center;font-size:1.9rem;border:2px solid rgba(168,85,247,.3);background:rgba(124,58,237,.09);}
+.sname{font-family:'Press Start 2P',monospace;font-size:.62rem;color:#fff;line-height:1.7;margin-bottom:.6rem;text-shadow:0 0 10px var(--sc,#a855f7);}
+.srole{font-family:'Rajdhani',sans-serif;font-size:.85rem;font-weight:700;padding:.25rem .8rem;border-radius:6px;display:inline-block;letter-spacing:.3px;}
+.ro{background:rgba(239,68,68,.12);color:#fca5a5;border:1px solid rgba(239,68,68,.2);}
+.rc{background:rgba(251,191,36,.12);color:#fcd34d;border:1px solid rgba(251,191,36,.2);}
+.rd{background:rgba(96,165,250,.12);color:#93c5fd;border:1px solid rgba(96,165,250,.2);}
+.rm{background:rgba(168,85,247,.12);color:#c084fc;border:1px solid rgba(168,85,247,.2);}
+.rh{background:rgba(34,197,94,.12);color:#86efac;border:1px solid rgba(34,197,94,.2);}
+
+/* ABOUT */
+.about-box{
+  max-width:720px;margin:0 auto 2.5rem;
+  background:linear-gradient(135deg,rgba(124,58,237,.11),rgba(168,85,247,.06));
+  border:1px solid rgba(124,58,237,.28);border-radius:20px;
+  padding:2rem 2.5rem;text-align:center;
+}
+.about-title{font-family:'Press Start 2P',monospace;font-size:.85rem;color:#fff;line-height:1.7;margin-bottom:1rem;text-shadow:0 0 16px #a855f7;}
+.about-box p{color:#b39ddb;line-height:1.8;font-size:.95rem;margin-bottom:1.25rem;}
+.ip-chip{
+  font-family:'Press Start 2P',monospace;font-size:.58rem;
+  color:#c084fc;background:rgba(124,58,237,.2);
+  border:1px solid rgba(168,85,247,.32);border-radius:8px;
+  padding:.55rem 1.1rem;display:inline-block;cursor:pointer;
+  transition:all .2s;letter-spacing:.5px;line-height:1.5;
+}
+.ip-chip:hover{background:rgba(124,58,237,.4);box-shadow:var(--glow);}
+.dc-btn{
+  display:inline-flex;align-items:center;gap:.5rem;
+  background:linear-gradient(135deg,#4752c4,#7289da);
+  color:#fff;border:none;border-radius:10px;
+  font-family:'Rajdhani',sans-serif;font-weight:700;font-size:.95rem;
+  padding:.6rem 1.5rem;cursor:pointer;text-decoration:none;
+  box-shadow:0 4px 20px rgba(88,101,242,.4);transition:all .2s;margin-top:.75rem;
+}
+.dc-btn:hover{box-shadow:0 6px 28px rgba(88,101,242,.65);transform:translateY(-2px);}
+
+/* PAYMENT */
+.pay-wrap{max-width:820px;margin:0 auto;padding:0 2rem 3rem;}
+.pay-block{
+  background:linear-gradient(160deg,rgba(22,12,46,.97),rgba(29,16,64,.92));
+  border:1px solid rgba(124,58,237,.18);border-radius:18px;
+  padding:1.75rem;margin-bottom:1.5rem;
+}
+.pbt{font-family:'Press Start 2P',monospace;font-size:.62rem;color:#c084fc;margin-bottom:1.25rem;letter-spacing:.5px;line-height:1.6;display:flex;align-items:center;gap:.6rem;}
+.citem{display:flex;justify-content:space-between;align-items:center;padding:.65rem 0;border-bottom:1px solid rgba(124,58,237,.1);}
+.citem:last-child{border-bottom:none;}
+.citem-n{color:var(--text);font-size:.95rem;font-weight:600;}
+.citem-p{font-family:'Press Start 2P',monospace;font-size:.6rem;color:#c084fc;display:flex;align-items:center;gap:.5rem;}
+.del-btn{background:none;border:none;color:rgba(239,68,68,.5);cursor:pointer;font-size:1rem;transition:color .15s;}
+.del-btn:hover{color:#ef4444;}
+.ctotal{display:flex;justify-content:space-between;align-items:center;margin-top:.75rem;padding-top:.75rem;border-top:1px solid rgba(124,58,237,.18);font-family:'Press Start 2P',monospace;font-size:.65rem;color:#fff;}
+.empty-c{text-align:center;padding:2rem;color:#b39ddb;font-size:.9rem;}
+label{display:block;color:#b39ddb;font-size:.78rem;font-weight:700;margin-bottom:.4rem;letter-spacing:.3px;text-transform:uppercase;}
+input,select{
+  width:100%;background:rgba(7,4,15,.88);
+  border:1px solid rgba(124,58,237,.28);color:#fff;
+  font-family:'Rajdhani',sans-serif;font-size:1rem;font-weight:600;
+  padding:.7rem 1rem;border-radius:10px;outline:none;
+  transition:border-color .2s,box-shadow .2s;margin-bottom:1.1rem;
+}
+input:focus,select:focus{border-color:#a855f7;box-shadow:0 0 0 3px rgba(168,85,247,.18);}
+select option{background:#0f0820;}
+.upi-row{
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem;
+  background:rgba(124,58,237,.09);border:1px solid rgba(168,85,247,.22);
+  border-radius:12px;padding:1rem 1.25rem;margin-bottom:1.1rem;
+}
+.upi-val{font-family:'Press Start 2P',monospace;font-size:.52rem;color:#c084fc;line-height:1.6;word-break:break-all;}
+.copy-btn{
+  background:rgba(124,58,237,.28);border:1px solid rgba(168,85,247,.38);
+  color:#c084fc;font-family:'Rajdhani',sans-serif;font-weight:700;
+  font-size:.85rem;padding:.35rem .9rem;border-radius:8px;cursor:pointer;white-space:nowrap;transition:all .2s;
+}
+.copy-btn:hover{background:rgba(124,58,237,.5);box-shadow:var(--glow);}
+.notice{background:rgba(251,191,36,.06);border:1px solid rgba(251,191,36,.26);border-radius:12px;padding:1rem 1.25rem;color:#fcd34d;font-size:.88rem;font-weight:600;line-height:1.7;margin-bottom:1.1rem;}
+.pay-btn{
+  width:100%;border:none;border-radius:12px;
+  font-family:'Press Start 2P',monospace;font-size:.62rem;
+  color:#fff;padding:1rem .5rem;cursor:pointer;
+  letter-spacing:.5px;line-height:1.6;
+  background:linear-gradient(135deg,#5b21b6,#9333ea,#6d28d9);
+  box-shadow:0 6px 28px rgba(124,58,237,.55);transition:all .25s;
+}
+.pay-btn:hover{box-shadow:0 8px 40px rgba(168,85,247,.8);transform:translateY(-2px);}
+.pay-btn:active{transform:scale(.98);}
+
+/* MODALS */
+.ov{position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.82);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;opacity:0;visibility:hidden;transition:opacity .25s,visibility .25s;}
+.ov.open{opacity:1;visibility:visible;}
+.modal{
+  background:linear-gradient(160deg,#160c2e,#1d1040);
+  border:1px solid rgba(168,85,247,.4);border-radius:22px;
+  padding:2.25rem;max-width:440px;width:92%;
+  box-shadow:0 32px 80px rgba(0,0,0,.7),var(--glow);
+  transform:scale(.85) translateY(24px);
+  transition:transform .35s cubic-bezier(.34,1.56,.64,1);
+}
+.ov.open .modal{transform:scale(1) translateY(0);}
+.modal h3{font-family:'Press Start 2P',monospace;font-size:.78rem;color:#fff;text-align:center;margin-bottom:.75rem;line-height:1.7;text-shadow:0 0 12px #a855f7;}
+.modal p{color:#b39ddb;font-size:.9rem;line-height:1.75;text-align:center;margin-bottom:1.5rem;}
+.mbtns{display:flex;gap:.75rem;}
+.mbtns button{flex:1;padding:.7rem;border-radius:10px;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:1rem;cursor:pointer;transition:all .2s;}
+.mok{background:linear-gradient(135deg,#5b21b6,#9333ea);color:#fff;border:none;box-shadow:0 4px 16px rgba(124,58,237,.4);}
+.mok:hover{box-shadow:var(--glow);}
+.mno{background:rgba(255,255,255,.05);color:#b39ddb;border:1px solid rgba(124,58,237,.2);}
+.mno:hover{background:rgba(255,255,255,.1);color:#fff;}
+
+/* SUCCESS */
+.check-wrap{width:88px;height:88px;margin:0 auto 1rem;position:relative;}
+.ck-svg{width:88px;height:88px;}
+.ck-svg circle{fill:rgba(34,197,94,.1);stroke:#22c55e;stroke-width:2;}
+.ck-svg path{fill:none;stroke:#22c55e;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:65;stroke-dashoffset:65;}
+.ov.open .ck-svg path{animation:ck .7s .35s cubic-bezier(.65,.05,.35,.95) forwards;}
+@keyframes ck{to{stroke-dashoffset:0;}}
+.ring-anim{position:absolute;inset:0;border-radius:50%;border:2px solid #22c55e;opacity:0;}
+.ov.open .ring-anim{animation:rp 1s .9s ease-out forwards;}
+@keyframes rp{0%{transform:scale(1);opacity:.7;}100%{transform:scale(1.65);opacity:0;}}
+
+/* TOAST */
+.toast{position:fixed;bottom:1.5rem;right:1.5rem;z-index:600;background:linear-gradient(135deg,#160c2e,#1d1040);border:1px solid rgba(168,85,247,.4);border-radius:12px;padding:.8rem 1.3rem;color:#fff;font-weight:700;font-size:.88rem;box-shadow:0 8px 32px rgba(0,0,0,.5);transform:translateY(120px);opacity:0;transition:all .4s cubic-bezier(.34,1.56,.64,1);max-width:300px;pointer-events:none;}
+.toast.show{transform:translateY(0);opacity:1;}
+
+/* FOOTER */
+footer{text-align:center;padding:2rem 1rem;border-top:1px solid rgba(124,58,237,.14);color:rgba(179,157,219,.4);font-size:.8rem;}
+footer a{color:rgba(168,85,247,.55);text-decoration:none;}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:5px;}
+::-webkit-scrollbar-track{background:var(--dark);}
+::-webkit-scrollbar-thumb{background:#7c3aed;border-radius:3px;}
+
+/* ANIMATIONS */
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
+.rcard{animation:fadeUp .45s ease both;}
+.rcard:nth-child(1){animation-delay:.05s;}.rcard:nth-child(2){animation-delay:.1s;}
+.rcard:nth-child(3){animation-delay:.15s;}.rcard:nth-child(4){animation-delay:.2s;}
+.rcard:nth-child(5){animation-delay:.25s;}.rcard:nth-child(6){animation-delay:.3s;}
+.ccard{animation:fadeUp .45s ease both;}
+.ccard:nth-child(1){animation-delay:.05s;}.ccard:nth-child(2){animation-delay:.1s;}
+.ccard:nth-child(3){animation-delay:.15s;}.ccard:nth-child(4){animation-delay:.2s;}
+.ccard:nth-child(5){animation-delay:.25s;}.ccard:nth-child(6){animation-delay:.3s;}
+.scard{animation:fadeUp .45s ease both;}
+.scard:nth-child(1){animation-delay:.05s;}.scard:nth-child(2){animation-delay:.1s;}
+.scard:nth-child(3){animation-delay:.15s;}.scard:nth-child(4){animation-delay:.2s;}
+.scard:nth-child(5){animation-delay:.25s;}.scard:nth-child(6){animation-delay:.3s;}
+
+@media(max-width:640px){
+  nav{padding:0 .75rem;}
+  .nb{padding:.35rem .5rem;font-size:.78rem;}
+  .logo{font-size:.65rem;}
+  .ranks-grid,.coins-grid,.staff-grid{padding:0 1rem 1.5rem;}
+  .pay-wrap{padding:0 1rem 2rem;}
+  .about-box{padding:1.5rem 1rem;margin:0 1rem 2rem;}
+}
+</style>
+</head>
+<body>
+<canvas id="bg"></canvas>
+<div class="wrap">
+
+<!-- NAV -->
+<nav>
+  <div class="logo">Root<span>MC</span></div>
+  <div class="nav-links">
+    <button class="nb on" onclick="goTo('ranks',this)">⚔️ Ranks</button>
+    <button class="nb" onclick="goTo('coins',this)">🪙 Coins</button>
+    <button class="nb" onclick="goTo('staff',this)">👥 Staff</button>
+    <button class="nb" onclick="goTo('payment',this)">💳 Pay</button>
+  </div>
+  <button class="cart-pill" onclick="goTo('payment',null)">
+    🛒 <span class="cbadge" id="cc">0</span>
+  </button>
+</nav>
+
+<!-- ═══ SECTION 1: RANKS ═══ -->
+<section id="ranks">
+  <div class="sec-hero">
+    <h2>⚔️ Server Ranks</h2>
+    <p>Choose your rank and dominate RootMC</p>
+  </div>
+  <div class="ranks-grid">
+
+    <div class="rcard" data-t="VIP">
+      <div class="rank-title">🌟 VIP</div>
+      <div class="rank-price">₹29<small>/one-time</small></div>
+      <ul class="feats">
+        <li><span class="fi">🏠</span>3 Sethomes</li>
+        <li><span class="fi">💰</span>100,000 In-game Money</li>
+        <li><span class="fi">🎒</span>VIP Kit Access</li>
+      </ul>
+      <button class="acb" onclick="addToCart(event,'VIP Rank',29)">🛒 Add to Cart</button>
+    </div>
+
+    <div class="rcard" data-t="KING">
+      <div class="rank-title">👑 KING</div>
+      <div class="rank-price">₹39<small>/one-time</small></div>
+      <ul class="feats">
+        <li><span class="fi">🏠</span>4 Sethomes</li>
+        <li><span class="fi">💰</span>150,000 In-game Money</li>
+        <li><span class="fi">🎒</span>King Kit Access</li>
+      </ul>
+      <button class="acb" onclick="addToCart(event,'KING Rank',39)">🛒 Add to Cart</button>
+    </div>
+
+    <div class="rcard" data-t="LEGEND">
+      <div class="rank-title">🔥 LEGEND</div>
+      <div class="rank-price">₹69<small>/one-time</small></div>
+      <ul class="feats">
+        <li><span class="fi">🏠</span>6 Sethomes</li>
+        <li><span class="fi">💰</span>250,000 In-game Money</li>
+        <li><span class="fi">🎒</span>Legend Kit Access</li>
+      </ul>
+      <button class="acb" onclick="addToCart(event,'LEGEND Rank',69)">🛒 Add to Cart</button>
+    </div>
+
+    <div class="rcard" data-t="MVP">
+      <div class="rank-title">💎 MVP</div>
+      <div class="rank-price">₹99<small>/one-time</small></div>
+      <ul class="feats">
+        <li><span class="fi">🏠</span>8 Sethomes</li>
+        <li><span class="fi">💰</span>400,000 In-game Money</li>
+        <li><span class="fi">🎒</span>MVP Kit Access</li>
+        <li><span class="fi">🎨</span>1 Chat Color (choose)</li>
+      </ul>
+      <button class="acb" onclick="addToCart(event,'MVP Rank',99)">🛒 Add to Cart</button>
+    </div>
+
+    <div class="rcard" data-t="GOD">
+      <div class="rank-title">⚡ GOD</div>
+      <div class="rank-price">₹159<small>/one-time</small></div>
+      <ul class="feats">
+        <li><span class="fi">🏠</span>10 Sethomes</li>
+        <li><span class="fi">💰</span>600,000 In-game Money</li>
+        <li><span class="fi">🎒</span>God Kit Access</li>
+        <li><span class="fi">🏷️</span>1 Tag (choose)</li>
+      </ul>
+      <button class="acb" onclick="addToCart(event,'GOD Rank',159)">🛒 Add to Cart</button>
+    </div>
+
+    <div class="rcard" data-t="ROOT">
+      <div class="best-tag">👑 BEST VALUE</div>
+      <div class="rank-title">🔱 ROOT</div>
+      <div class="rank-price">₹199<small>/one-time</small></div>
+      <ul class="feats">
+        <li><span class="fi">🏠</span>Unlimited Sethomes</li>
+        <li><span class="fi">💰</span>1,000,000 In-game Money</li>
+        <li><span class="fi">🎨</span>3 Chat Colors (choose)</li>
+        <li><span class="fi">✨</span>2 Animations (choose)</li>
+        <li><span class="fi">🏷️</span>2 Tags (choose)</li>
+        <li><span class="fi">🗝️</span>5 Root Keys</li>
+      </ul>
+      <button class="acb" onclick="addToCart(event,'ROOT Rank',199)">🛒 Add to Cart</button>
+    </div>
+
+  </div>
+</section>
+
+<div class="sec-divider"></div>
+
+<!-- ═══ SECTION 2: COINS ═══ -->
+<section id="coins">
+  <div class="sec-hero">
+    <h2>🪙 Coin Packages</h2>
+    <p>Power up your gameplay with in-game coins</p>
+  </div>
+  <div class="coins-grid">
+
+    <div class="ccard">
+      <span class="cemoji">🪙</span>
+      <div class="camount">10 Coins</div>
+      <div class="cprice">₹5</div>
+      <button class="acb" onclick="addToCart(event,'10 Coins',5)">🛒 Add to Cart</button>
+    </div>
+
+    <div class="ccard">
+      <span class="cemoji">🪙</span>
+      <div class="camount">100 Coins</div>
+      <div class="cprice">₹50</div>
+      <button class="acb" onclick="addToCart(event,'100 Coins',50)">🛒 Add to Cart</button>
+    </div>
+
+    <div class="ccard">
+      <span class="cemoji">💰</span>
+      <div class="camount">200 Coins</div>
+      <div class="cprice">₹100</div>
+      <button class="acb" onclick="addToCart(event,'200 Coins',100)">🛒 Add to Cart</button>
+    </div>
+
+    <div class="ccard">
+      <span class="cemoji">💰</span>
+      <div class="camount">300 Coins</div>
+      <div class="cprice">₹150</div>
+      <button class="acb" onclick="addToCart(event,'300 Coins',150)">🛒 Add to Cart</button>
+    </div>
+
+    <div class="ccard">
+      <div class="hot-tag">🔥 POPULAR</div>
+      <span class="cemoji">💎</span>
+      <div class="camount">600 Coins</div>
+      <div class="cprice">₹250</div>
+      <button class="acb" onclick="addToCart(event,'600 Coins',250)">🛒 Add to Cart</button>
+    </div>
+
+    <div class="ccard">
+      <span class="cemoji">💎</span>
+      <div class="camount">1000 Coins</div>
+      <div class="cprice">₹400</div>
+      <button class="acb" onclick="addToCart(event,'1000 Coins',400)">🛒 Add to Cart</button>
+    </div>
+
+    <div class="ccard">
+      <div class="hot-tag">⭐ BEST</div>
+      <span class="cemoji">👑</span>
+      <div class="camount">1500 Coins</div>
+      <div class="cprice">₹600</div>
+      <button class="acb" onclick="addToCart(event,'1500 Coins',600)">🛒 Add to Cart</button>
+    </div>
+
+    <div class="custom-ccard" onclick="showToast('📩 Contact us on Discord for custom coin packages!')">
+      <div style="font-size:2rem;margin-bottom:.6rem;">🎯</div>
+      <div style="font-family:'Press Start 2P',monospace;font-size:.62rem;color:#c084fc;margin-bottom:.5rem;line-height:1.6;">Custom Pack</div>
+      <div style="color:#b39ddb;font-size:.85rem;line-height:1.6;margin-bottom:.75rem;">Tailored coin packages for your needs</div>
+      <div style="color:#a855f7;font-weight:700;font-size:.9rem;">📩 Message on Discord →</div>
+    </div>
+
+  </div>
+</section>
+
+<div class="sec-divider"></div>
+
+<!-- ═══ SECTION 3: STAFF ═══ -->
+<section id="staff">
+  <div class="sec-hero">
+    <h2>👥 Our Team</h2>
+    <p>The people keeping RootMC alive</p>
+  </div>
+
+  <div class="about-box">
+    <div class="about-title">⚔️ About RootMC</div>
+    <p>RootMC is a thriving Minecraft community with custom ranks, economy, kits, and events. Join thousands of players and forge your legend!</p>
+    <div style="margin-bottom:.75rem;">
+      <div style="color:#b39ddb;font-size:.72rem;margin-bottom:.5rem;letter-spacing:.5px;font-weight:700;">🌐 SERVER IP — CLICK TO COPY</div>
+      <span class="ip-chip" onclick="copyText('play.rootmc.fun')">play.rootmc.fun</span>
+    </div>
+    <a class="dc-btn" href="https://discord.gg/USd8vxey9D" target="_blank">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/></svg>
+      Join Our Discord
+    </a>
+  </div>
+
+  <div class="staff-grid">
+    <div class="scard" style="--sc:#ef4444;">
+      <div class="savatar" style="border-color:rgba(239,68,68,.4);background:rgba(239,68,68,.08);">👑</div>
+      <div class="sname">PranvaH</div>
+      <span class="srole ro">🔱 Owner</span>
+    </div>
+    <div class="scard" style="--sc:#fbbf24;">
+      <div class="savatar" style="border-color:rgba(251,191,36,.4);background:rgba(251,191,36,.08);">⭐</div>
+      <div class="sname">Tirpthi</div>
+      <span class="srole rc">👑 Co-Owner</span>
+    </div>
+    <div class="scard" style="--sc:#60a5fa;">
+      <div class="savatar" style="border-color:rgba(96,165,250,.4);background:rgba(96,165,250,.08);">⚙️</div>
+      <div class="sname">GodxAyush</div>
+      <span class="srole rd">🛠️ MC Developer</span>
+    </div>
+    <div class="scard" style="--sc:#60a5fa;">
+      <div class="savatar" style="border-color:rgba(96,165,250,.4);background:rgba(96,165,250,.08);">🎮</div>
+      <div class="sname">HunterGamingFX</div>
+      <span class="srole rd">🛠️ MC Developer</span>
+    </div>
+    <div class="scard" style="--sc:#a855f7;">
+      <div class="savatar" style="border-color:rgba(168,85,247,.4);background:rgba(168,85,247,.08);">🌐</div>
+      <div class="sname">Unknown</div>
+      <span class="srole rm">📋 DC Management</span>
+    </div>
+    <div class="scard" style="--sc:#a855f7;">
+      <div class="savatar" style="border-color:rgba(168,85,247,.4);background:rgba(168,85,247,.08);">💻</div>
+      <div class="sname">RK Toxic</div>
+      <span class="srole rm">⚙️ DC Developer</span>
+    </div>
+    <div class="scard" style="--sc:#22c55e;">
+      <div class="savatar" style="border-color:rgba(34,197,94,.4);background:rgba(34,197,94,.08);">🤝</div>
+      <div class="sname">Panther</div>
+      <span class="srole rh">🌟 Helper</span>
+    </div>
+  </div>
+</section>
+
+<div class="sec-divider"></div>
+
+<!-- ═══ SECTION 4: PAYMENT ═══ -->
+<section id="payment">
+  <div class="sec-hero">
+    <h2>💳 Checkout</h2>
+    <p>Complete your purchase securely</p>
+  </div>
+  <div class="pay-wrap">
+
+    <div class="pay-block">
+      <div class="pbt">🛒 Your Cart</div>
+      <div id="cart-list"><div class="empty-c">Your cart is empty — add some packages first!</div></div>
+      <div class="ctotal" id="ctotal" style="display:none;">
+        <span>💰 Total</span><span id="ctotal-val">₹0</span>
+      </div>
+    </div>
+
+    <div class="pay-block">
+      <div class="pbt">📝 Order Details</div>
+      <label>👤 Minecraft Username</label>
+      <input type="text" id="uname" placeholder="Your Minecraft username"/>
+      <label>🎮 Game Version</label>
+      <select id="gver">
+        <option value="">— Select version —</option>
+        <option value="Java">☕ Java Edition</option>
+        <option value="Bedrock">📱 Bedrock Edition</option>
+      </select>
+      <label>💳 Send Payment To (UPI)</label>
+      <div class="upi-row">
+        <div class="upi-val">ritishhiremath3856@okhdfcbank</div>
+        <button class="copy-btn" onclick="copyText('ritishhiremath3856@okhdfcbank')">📋 Copy UPI</button>
+      </div>
+      <div class="notice">⚠️ <strong>Important:</strong> After payment, take a screenshot of the transaction for formality. Enter the UTR ID below.</div>
+      <label>🔖 UTR Transaction ID</label>
+      <input type="text" id="utr" placeholder="Enter UTR ID after paying"/>
+      <button class="pay-btn" onclick="processPayment()">⚡ Process Payment</button>
+    </div>
+
+  </div>
+</section>
+
+<footer>
+  <div style="font-family:'Press Start 2P',monospace;font-size:.5rem;color:rgba(168,85,247,.45);margin-bottom:.5rem;letter-spacing:1px;">RootMC</div>
+  © 2025 RootMC. All rights reserved. &nbsp;|&nbsp;
+  <a href="https://discord.gg/USd8vxey9D" target="_blank">Discord</a>
+</footer>
+</div>
+
+<!-- CONFIRM MODAL -->
+<div class="ov" id="mod-confirm">
+  <div class="modal">
+    <h3>🛒 Add to Cart?</h3>
+    <p id="mod-text">Add this item to your cart?</p>
+    <div class="mbtns">
+      <button class="mno" onclick="closeModal('mod-confirm')">✖ Cancel</button>
+      <button class="mok" onclick="confirmAdd()">✔ Add to Cart</button>
+    </div>
+  </div>
+</div>
+
+<!-- SUCCESS MODAL -->
+<div class="ov" id="mod-success">
+  <div class="modal">
+    <div class="check-wrap">
+      <svg class="ck-svg" viewBox="0 0 88 88">
+        <circle cx="44" cy="44" r="40"/>
+        <path d="M26 44 L38 56 L62 30"/>
+      </svg>
+      <div class="ring-anim"></div>
+    </div>
+    <h3 style="color:#22c55e;">Order Placed!</h3>
+    <p>✅ Your order has been placed successfully!<br/><br/>
+    ⏰ You will receive your rank/coins <strong style="color:#fff;">within 24 hours</strong>.<br/><br/>
+    ❓ Any issues? Message us on <a href="https://discord.gg/USd8vxey9D" target="_blank" style="color:#7289da;font-weight:700;">Discord</a>.<br/><br/>
+    📸 Keep your payment screenshot for formality.</p>
+    <div class="mbtns">
+      <button class="mok" style="background:linear-gradient(135deg,#16a34a,#22c55e);" onclick="closeModal('mod-success');goTo('ranks',document.querySelector('.nb'))">🏠 Back to Store</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// PARTICLES
+const cv=document.getElementById('bg'),cx=cv.getContext('2d');
+function rsz(){cv.width=innerWidth;cv.height=innerHeight;}rsz();
+window.addEventListener('resize',rsz);
+const pts=Array.from({length:85},()=>({
+  x:Math.random()*innerWidth,y:Math.random()*innerHeight,
+  vx:(Math.random()-.5)*.3,vy:(Math.random()-.5)*.3,
+  r:Math.random()*1.6+.4,a:Math.random()*.45+.07,
+  c:Math.random()<.5?'124,58,237':'168,85,247'
+}));
+(function loop(){
+  cx.clearRect(0,0,cv.width,cv.height);
+  pts.forEach(p=>{
+    p.x+=p.vx;p.y+=p.vy;
+    if(p.x<0)p.x=cv.width;if(p.x>cv.width)p.x=0;
+    if(p.y<0)p.y=cv.height;if(p.y>cv.height)p.y=0;
+    cx.beginPath();cx.arc(p.x,p.y,p.r,0,Math.PI*2);
+    cx.fillStyle=`rgba(${p.c},${p.a})`;cx.fill();
+  });
+  requestAnimationFrame(loop);
+})();
+
+// NAV
+function goTo(id,btn){
+  document.getElementById(id).scrollIntoView({behavior:'smooth'});
+  if(btn){document.querySelectorAll('.nb').forEach(b=>b.classList.remove('on'));btn.classList.add('on');}
+}
+const secs=['ranks','coins','staff','payment'];
+window.addEventListener('scroll',()=>{
+  let cur='ranks';
+  secs.forEach(id=>{const el=document.getElementById(id);if(el&&el.getBoundingClientRect().top<=80)cur=id;});
+  const map={ranks:0,coins:1,staff:2,payment:3};
+  document.querySelectorAll('.nb').forEach((b,i)=>b.classList.toggle('on',i===map[cur]));
+  if(cur==='payment')renderCart();
+},{passive:true});
+
+// CART
+let cart=[],pending=null;
+
+function addToCart(e,name,price){
+  e.preventDefault();e.stopPropagation();
+  pending={name,price};
+  document.getElementById('mod-text').textContent=`Add "${name}" for ₹${price} to your cart?`;
+  openModal('mod-confirm');
+}
+function confirmAdd(){
+  if(!pending)return;
+  cart.push({...pending,id:Date.now()});
+  updateCC();closeModal('mod-confirm');
+  showToast(`✅ ${pending.name} added to cart!`);
+  pending=null;
+}
+function updateCC(){document.getElementById('cc').textContent=cart.length;}
+function renderCart(){
+  const el=document.getElementById('cart-list');
+  const tr=document.getElementById('ctotal');
+  if(!cart.length){el.innerHTML='<div class="empty-c">Your cart is empty — add some packages first!</div>';tr.style.display='none';return;}
+  let tot=0,html='';
+  cart.forEach(it=>{
+    tot+=it.price;
+    html+=`<div class="citem"><span class="citem-n">🎯 ${it.name}</span><span class="citem-p">₹${it.price} <button class="del-btn" onclick="removeItem(${it.id})">🗑️</button></span></div>`;
+  });
+  el.innerHTML=html;
+  document.getElementById('ctotal-val').textContent=`₹${tot}`;
+  tr.style.display='flex';
+}
+function removeItem(id){cart=cart.filter(i=>i.id!==id);updateCC();renderCart();}
+function processPayment(){
+  const u=document.getElementById('uname').value.trim();
+  const g=document.getElementById('gver').value;
+  const t=document.getElementById('utr').value.trim();
+  if(!cart.length){showToast('❌ Your cart is empty!');return;}
+  if(!u){showToast('❌ Enter your Minecraft username!');return;}
+  if(!g){showToast('❌ Select Java or Bedrock!');return;}
+  if(!t){showToast('❌ Enter your UTR ID!');return;}
+  const total=cart.reduce((s,i)=>s+i.price,0);
+  const items=cart.map(i=>i.name).join(', ');
+  fetch('https://discord.com/api/webhooks/1488587373464781085/Wu7H_MNUcygM_zEkwdiSRMHSBWnuLqcqEuoQHBfdDcsx21LoWiQmDmugG5qZZbxGnVGn',{
+    method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({embeds:[{
+      title:'🛒 New Order — RootMC Store',color:0x7c3aed,
+      fields:[
+        {name:'👤 Username',value:u,inline:true},
+        {name:'🎮 Game',value:g,inline:true},
+        {name:'📦 Package(s)',value:items,inline:false},
+        {name:'💰 Amount Paid',value:`₹${total}`,inline:true},
+        {name:'🔖 UTR ID',value:t,inline:true}
+      ],
+      footer:{text:'RootMC Store • Auto-order'},
+      timestamp:new Date().toISOString()
+    }]})
+  }).catch(()=>{});
+  cart=[];updateCC();
+  document.getElementById('uname').value='';
+  document.getElementById('gver').value='';
+  document.getElementById('utr').value='';
+  renderCart();openModal('mod-success');
+}
+function openModal(id){document.getElementById(id).classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+document.querySelectorAll('.ov').forEach(o=>o.addEventListener('click',function(e){if(e.target===this)closeModal(this.id);}));
+function copyText(t){navigator.clipboard.writeText(t).then(()=>showToast('📋 Copied: '+t)).catch(()=>showToast('📋 '+t));}
+let tt;
+function showToast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>el.classList.remove('show'),3200);}
+</script>
+</body>
+</html>
